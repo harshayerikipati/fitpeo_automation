@@ -1,0 +1,124 @@
+const { Builder, By, Key, until } = require('selenium-webdriver');
+const { JavascriptLogEntry } = require('selenium-webdriver/bidi/logEntries');
+
+(async function fitPeoAutomation() {
+    let driver = await new Builder().forBrowser('chrome').build();
+    try {
+      
+        await driver.get('https://www.fitpeo.com'); 
+        await driver.manage().window().maximize();
+        
+        await driver.findElement(By.linkText('Revenue Calculator')).click();
+
+
+        const sliderSpan = await driver.wait(
+        until.elementLocated(By.className('MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-16i48op')), 
+        10000
+        );
+
+
+       await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', sliderSpan);
+       await driver.sleep(1000);
+       
+       const slider = await driver.findElement(By.className('MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-16i48op')); 
+       await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', slider);
+       const isEnabled = await slider.isEnabled();
+       if (!isEnabled) {
+        console.error('Slider is not enabled.');
+        throw new Error('Cannot interact with disabled slider');
+    }
+
+
+    const sliderRect = await driver.executeScript('return arguments[0].getBoundingClientRect();', slider);
+    const sliderWidth = sliderRect.width;
+    const desiredValue = 41; 
+    const maxValue = 2000; 
+    const percentage = (desiredValue / maxValue) * 100; 
+    const offsetX = Math.round(sliderWidth * (percentage / 100));
+    const actions = driver.actions({ async: true });
+    await actions.move({ origin: slider }).press()
+    .move({ origin: slider, x: offsetX, y: 0 })
+    .release()
+    .perform();
+    console.log('Slider moved to target value');
+
+
+    const textField = await driver.wait(until.elementLocated(By.id(':r0:')), 10000); 
+    await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', textField);
+    await textField.clear(); 
+    await textField.sendKeys('560'); 
+    await driver.executeScript(`
+    const textField = arguments[0];
+    textField.dispatchEvent(new Event('input'));
+    textField.dispatchEvent(new Event('change'));
+    `, textField);
+    console.log("Value entered in the text field successfully.");
+    
+    
+    const cptCodes = ['CPT-99091'];
+    for (const code of cptCodes) {
+        try {
+            const checkbox = await driver.wait(
+                until.elementLocated(By.xpath("(//input[@class='PrivateSwitchBase-input css-1m9pwf3'])[1]")),
+                40000 
+            );
+            await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', checkbox);
+            if (!(await checkbox.isSelected())) {
+                await checkbox.click();
+                console.log(`${code} checkbox selected.`);
+            } else {
+                console.log(`${code} checkbox is already selected.`);
+            }
+        } catch (error) {
+            console.error(`Failed to select ${code}:`, error);
+        }
+    }
+    
+    const cptCodes1 = ['CPT-99453'];
+    for (const code of cptCodes) {
+        try {
+            const checkbox = await driver.wait(
+                until.elementLocated(By.xpath("(//input[@class='PrivateSwitchBase-input css-1m9pwf3'])[2]")),
+                40000 
+            );
+            await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', checkbox);
+            if (!(await checkbox.isSelected())) {
+                await checkbox.click();
+                console.log(`${code} checkbox selected.`);
+            } else {
+                console.log(`${code} checkbox is already selected.`);
+            }
+        } catch (error) {
+            console.error(`Failed to select ${code}:`, error);
+        }
+    }
+    
+    const cptCodes2 = ['CPT-99454'];
+    for (const code of cptCodes) {
+        try {
+            const checkbox = await driver.wait(
+                until.elementLocated(By.xpath("(//input[@class='PrivateSwitchBase-input css-1m9pwf3'])[3]")),
+                40000 
+            );
+            await driver.executeScript('arguments[0].scrollIntoView({ behavior: "smooth", block: "center" });', checkbox);
+            if (!(await checkbox.isSelected())) {
+                await checkbox.click();
+                console.log(`${code} checkbox selected.`);
+            } else {
+                console.log(`${code} checkbox is already selected.`);
+            }
+        } catch (error) {
+            console.error(`Failed to select ${code}:`, error);
+        }
+    }
+    
+    const totalReimbursement = await driver.findElement(By.id('total-reimbursement-id')).getText(); 
+    if (totalReimbursement !== '$110700') {
+        console.error('Total Recurring Reimbursement does not match expected value.');
+    }
+} catch (error) {
+    console.error('Error during automation:', error);
+} finally {
+
+}
+})();
